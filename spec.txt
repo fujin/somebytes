@@ -1,0 +1,38 @@
+SOMEBYTES(1)		  BSD General Commands Manual		  SOMEBYTES(1)
+
+NAME
+     somebytes -- create and query objects in an AWS S3 bucket
+
+SYNOPSIS
+     somebytes -c [number] [bucket]
+     somebytes -l [characters] [bucket]
+
+DESCRIPTION
+     The somebytes tool manages and queries objects in an AWS S3 bucket.
+
+     In its first form, it creates a number of files in the named bucket.
+     These files contain a random number of characters of Lorem Ipsum.
+
+     In its second form, it returns a list of objects and their sizes in the
+     named bucket equal to or greater than a specified number of bytes.
+
+OPTIONS
+     -c [number]
+	     Set the number of objects to create. The default is 10.
+
+     -l [bytes]
+	     List objects greater than or equal to the speficied size in
+	     bytes. The default is 1024.
+
+DIAGNOSTICS
+     The somebytes utility exits 0 on success, and >0 if an error occurs.
+
+ENVIRONMENT
+     The following environment variables affect the execution of somebytes:
+
+     SOMEBYTES_BUCKET
+		     If the environment variable SOMEBYTES_BUCKET is set, the
+		     named AWS bucket will be used. If a bucket is specified
+		     on the command line, it overrides this variable.
+
+BSD				  Feb 2, 2018				   BSD
