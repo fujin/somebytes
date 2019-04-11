@@ -154,7 +154,8 @@ func main() {
 		log.With(rz.Level(rz.InfoLevel)),
 	)
 
-	_, err := flags.Parse(&opts)
+	parser := flags.NewParser(&opts, flags.Default)
+	_, err := parser.Parse()
 	if err != nil {
 		panic(err)
 	}
@@ -185,9 +186,15 @@ func main() {
 	}
 	defer b.Close()
 
-	// Create mode! Create objects.
-	createObjects(ctx, b, opts.Number)
+	numberOpt := parser.FindOptionByShortName('c')
+	if numberOpt.IsSet() && !numberOpt.IsSetDefault() {
+		// Create mode! Create objects.
+		createObjects(ctx, b, opts.Number)
+	}
 
-	// List mode. List objects greater than or equal to the bytes size flag.
-	listObjects(ctx, b, opts.Bytes)
+	bytesOpt := parser.FindOptionByShortName('l')
+	if bytesOpt.IsSet() && !bytesOpt.IsSetDefault() {
+		// List mode. List objects greater than or equal to the bytes size flag.
+		listObjects(ctx, b, opts.Bytes)
+	}
 }
