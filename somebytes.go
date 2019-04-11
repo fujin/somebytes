@@ -89,6 +89,11 @@ func listObjects(ctx context.Context, b *blob.Bucket, threshold int) {
 	}
 }
 
+type Somebytes interface {
+	Create(ctx context.Context, bucket *blob.Bucket, threshold int)
+	List(ctx context.Context, bucket *blob.Bucket, threshold int)
+}
+
 func main() {
 	app := cli.NewApp()
 
