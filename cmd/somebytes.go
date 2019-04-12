@@ -6,7 +6,6 @@ import (
 	"io"
 	"math/rand"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,27 +16,6 @@ import (
 	"gocloud.dev/blob"
 	"gocloud.dev/blob/s3blob"
 )
-
-const (
-	maximumRandomCharacters = 1e6
-)
-
-// "A random number of characters of Lorem Ipsum" Characters are
-// kind of tricky in Go. We have to assume the test writer was
-// referring to a UTF-8 character, e.g. potentially multi-byte.
-// XXX(fujin): Move to loremipsum package?
-func randomLoremIpsumCharacters() []byte {
-	// Make a string builder to randomly write Lorem Ipsum's runes into.
-	var builder strings.Builder
-
-	// Iterate up to a random length, lower than the maximum.
-	for c := 0; c < rand.Intn(maximumRandomCharacters); c++ {
-		builder.WriteRune(loremipsum.Chars[rand.Intn(len(loremipsum.Chars))])
-	}
-
-	// Turn the string builder into byte slice, since we need one of those for writing later.
-	return []byte(builder.String())
-}
 
 func createObjects(ctx context.Context, b *blob.Bucket, limit int) {
 	// Seed the pseudo-random number generator.
@@ -51,7 +29,7 @@ func createObjects(ctx context.Context, b *blob.Bucket, limit int) {
 			log.Error("could not obtain writer", rz.Err(err))
 		}
 
-		bs := randomLoremIpsumCharacters()
+		bs := loremipsum.RandomCharacters()
 		expected := len(bs)
 		written, err := w.Write(bs)
 		if err != nil {
