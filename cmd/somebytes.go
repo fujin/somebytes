@@ -20,8 +20,6 @@ import (
 
 const (
 	version                 = "0.0.1"
-	defaultNumberOfObjects  = 10
-	defaultBytes            = 1024
 	maximumRandomCharacters = 1e6
 	maximumNumberOfObjects  = 1000
 )
@@ -40,16 +38,6 @@ func randomLoremIpsumCharacters() []byte {
 
 	// Turn the string builder into byte slice, since we need one of those for writing later.
 	return []byte(builder.String())
-}
-
-type objectCreator struct {
-}
-
-func (*objectCreator) Create() {
-
-}
-
-type objectLister struct {
 }
 
 func createObjects(ctx context.Context, b *blob.Bucket, limit int) {
@@ -128,17 +116,6 @@ var opts struct {
 	Args   struct {
 		Bucket string
 	} `positional-args:"yes"`
-}
-
-// getenv fetches key 'key' from the process' environment variables, or returns
-// the fallback string value if not present.
-func getenv(key, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
-
 }
 
 func main() {
