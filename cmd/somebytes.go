@@ -47,7 +47,7 @@ func createObjects(ctx context.Context, b *blob.Bucket, limit int) {
 
 		w, err := b.NewWriter(ctx, key, nil)
 		if err != nil {
-			log.Info("could not obtain writer", rz.Err(err))
+			log.Error("could not obtain writer", rz.Err(err))
 		}
 
 		bs := randomLoremIpsumCharacters()
@@ -82,7 +82,7 @@ func listObjects(ctx context.Context, b *blob.Bucket, threshold int) {
 		}
 
 		if err != nil {
-			log.Info("unexpected error during blob storage iteration", rz.Err(err))
+			log.Error("unexpected error during blob storage iteration", rz.Err(err))
 		}
 
 		if obj.Size >= int64(threshold) {
@@ -119,7 +119,7 @@ func main() {
 	parser := flags.NewParser(&opts, flags.Default)
 	_, err := parser.Parse()
 	if err != nil {
-		//		log.Info("could not parse flags", rz.Err(err))
+		os.Exit(1)
 	}
 
 	// Prefer SOMEBYTES_BUCKET
@@ -129,14 +129,15 @@ func main() {
 	}
 
 	if bucket == "" {
-		log.Info("Bucket missing. Set environment variable SOMEBYTES_BUCKET or as first argument.")
+		log.Error("Bucket missing. Set environment variable SOMEBYTES_BUCKET or as first argument.")
+		os.Exit(2)
 	}
 
 	// Acquire credentials from the runtime environment for AWS S3 -- standard environment variables.
 	sess, err := session.NewSession()
 	if err != nil {
 		log.Error("could not acquire AWS session", rz.Err(err))
-		return
+		os.Exit(3)
 	}
 
 	// Get a background context for our bucket operations.
@@ -145,7 +146,8 @@ func main() {
 	// Open a connection to the bucket, using the session previously created AWS.
 	b, err := s3blob.OpenBucket(ctx, sess, bucket, nil)
 	if err != nil {
-		log.Info("could not open bucket", rz.Err(err))
+		log.Error("could not open bucket", rz.Err(err))
+		os.Exit(4)
 	}
 	defer b.Close()
 
@@ -162,5 +164,10 @@ func main() {
 	if bytesOpt.IsSet() && !bytesOpt.IsSetDefault() {
 		// List objects greater than or equal to the bytes size flag.
 		listObjects(ctx, b, opts.Bytes)
+	}
+
+	if numberOpt.IsSetDefault() && bytesOpt.IsSetDefault() {
+		log.Error("could not determine mode of operation")
+		os.Exit(5)
 	}
 }
