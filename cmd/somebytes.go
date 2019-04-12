@@ -123,8 +123,8 @@ type Somebytes interface {
 }
 
 var opts struct {
-	Number int `short:"c" description:"Set the number of objects to create. The default is 10." default:"10"`
-	Bytes  int `short:"l" description:"List objects greater than or equal to the speficied size in bytes. The default is 1024." default:"1024"`
+	Number int `short:"c" description:"Set the number of objects to create." default:"10"`
+	Bytes  int `short:"l" description:"List objects greater than or equal to the speficied size in bytes." default:"1024"`
 	Args   struct {
 		Bucket string
 	} `positional-args:"yes"`
@@ -157,11 +157,14 @@ func main() {
 	parser := flags.NewParser(&opts, flags.Default)
 	_, err := parser.Parse()
 	if err != nil {
-		panic(err)
+		//		log.Info("could not parse flags", rz.Err(err))
 	}
 
 	// Prefer SOMEBYTES_BUCKET
-	bucket := getenv("SOMEBYTES_BUCKET", opts.Args.Bucket)
+	bucket := os.Getenv("SOMEBYTES_BUCKET")
+	if len(bucket) == 0 {
+		bucket = opts.Args.Bucket
+	}
 
 	if bucket == "" {
 		log.Info("Bucket missing. Set environment variable SOMEBYTES_BUCKET or as first argument.")
@@ -176,25 +179,28 @@ func main() {
 		log.Info("could not acquire AWS session", rz.Err(err))
 	}
 
-	// Get a background context.
+	// Get a background context for our bucket operations.
 	ctx := context.Background()
 
-	// Open a connection to the bucket, using the session.
+	// Open a connection to the bucket, using the session previously created AWS.
 	b, err := s3blob.OpenBucket(ctx, sess, bucket, nil)
 	if err != nil {
 		log.Info("could not open bucket", rz.Err(err))
 	}
 	defer b.Close()
 
+	// Use the lesser known capabilities of go-flag to detect if the flag
+	// has been set, but is not set to the default value. I think this is a
+	// good approximation of the desired behavior.
 	numberOpt := parser.FindOptionByShortName('c')
 	if numberOpt.IsSet() && !numberOpt.IsSetDefault() {
-		// Create mode! Create objects.
+		// Create objects.
 		createObjects(ctx, b, opts.Number)
 	}
 
 	bytesOpt := parser.FindOptionByShortName('l')
 	if bytesOpt.IsSet() && !bytesOpt.IsSetDefault() {
-		// List mode. List objects greater than or equal to the bytes size flag.
+		// List objects greater than or equal to the bytes size flag.
 		listObjects(ctx, b, opts.Bytes)
 	}
 }
