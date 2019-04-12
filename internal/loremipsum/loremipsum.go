@@ -19,9 +19,10 @@ const (
 	maximumRandomCharacters = 1e6
 )
 
-// "A random number of characters of Lorem Ipsum" Characters are kind of tricky
-// in Go. We have to assume the test writer was referring to a UTF-8 character,
-// e.g. potentially multi-byte, although there are none in the phrase..
+// RandomCharacters returns "A random number of characters of Lorem Ipsum" as a
+// slice of bytes. Characters are kind of tricky in Go. We have to assume the
+// test writer was referring to a UTF-8 character, e.g. potentially multi-byte,
+// although there are none in the phrase..
 func RandomCharacters() []byte {
 	// Make a string builder to randomly write Lorem Ipsum's runes into.
 	var builder strings.Builder
