@@ -19,9 +19,7 @@ import (
 )
 
 const (
-	version                 = "0.0.1"
 	maximumRandomCharacters = 1e6
-	maximumNumberOfObjects  = 1000
 )
 
 // "A random number of characters of Lorem Ipsum" Characters are
@@ -97,19 +95,6 @@ func listObjects(ctx context.Context, b *blob.Bucket, threshold int) {
 	}
 }
 
-type ObjectCreator interface {
-	Create(ctx context.Context, bucket *blob.Bucket, limit int)
-}
-
-type ObjectLister interface {
-	List(ctx context.Context, bucket *blob.Bucket, threshold int)
-}
-
-type Somebytes interface {
-	ObjectCreator
-	ObjectLister
-}
-
 var opts struct {
 	Number int `short:"c" description:"Set the number of objects to create." default:"10"`
 	Bytes  int `short:"l" description:"List objects greater than or equal to the speficied size in bytes." default:"1024"`
@@ -150,10 +135,8 @@ func main() {
 	// Acquire credentials from the runtime environment for AWS S3 -- standard environment variables.
 	sess, err := session.NewSession()
 	if err != nil {
-		// It would be much better to handle the particular 'no
-		// credentials' error here and instruct the user how to
-		// fix the problem..
-		log.Info("could not acquire AWS session", rz.Err(err))
+		log.Error("could not acquire AWS session", rz.Err(err))
+		return
 	}
 
 	// Get a background context for our bucket operations.
