@@ -99,6 +99,21 @@ go test ./... -v
 ```
 
 ### Coverage
+As of submission, the current level of coverage is available:
+```
+?       github.com/fujin/somebytes/cmd/somebytes        [no test files]
+ok      github.com/fujin/somebytes/internal/blobber     0.022s  coverage: 94.4% of statements
+ok      github.com/fujin/somebytes/internal/loremipsum  0.008s  coverage: 83.3% of statements
+github.com/fujin/somebytes/internal/blobber/blobber.go:47:              NewWriter               0.0%
+github.com/fujin/somebytes/internal/blobber/blobber.go:52:              List                    0.0%
+github.com/fujin/somebytes/internal/blobber/blobber.go:65:              New                     100.0%
+github.com/fujin/somebytes/internal/blobber/blobber.go:82:              CreateObjects           100.0%
+github.com/fujin/somebytes/internal/blobber/blobber.go:126:             ListObjects             100.0%
+github.com/fujin/somebytes/internal/loremipsum/loremipsum.go:25:        RandomCharacters        83.3%
+total:                                                                  (statements)            92.9%
+```
+
+To generate the coverage profile and visualizations, run the following:
 ```
 go test -covermode atomic -cover -coverprofile profile.out ./...
 go tool cover -html=profile.out
