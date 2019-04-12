@@ -59,7 +59,10 @@ I've included an 'internal'-type package named blobber, which handles interactin
 
 ## Building
 
-- `cd cmd && go build -o somebytes`
+```
+cd cmd/somebytes
+go build
+```
 
 ## Running
 - Set the required environment variables for access to AWS S3. They are as follows:
