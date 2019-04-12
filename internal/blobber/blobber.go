@@ -11,28 +11,56 @@ import (
 	"gocloud.dev/blob"
 )
 
-type BlobBucketWriter interface {
-	NewWriter(ctx context.Context, key string, opts *blob.WriterOptions) (*blob.Writer, error)
+type blobBucketWriter interface {
+	NewWriter(ctx context.Context, key string) (io.WriteCloser, error)
 }
 
-type BlobBucketLister interface {
-	List(opts *blob.ListOptions) *blob.ListIterator
+type listIterator interface {
+	Next(context.Context) (*blob.ListObject, error)
 }
+
+type blobBucketLister interface {
+	List() listIterator
+}
+
+type blobBucket interface {
+	blobBucketWriter
+	blobBucketLister
+}
+
 type BlobBucket interface {
-	BlobBucketWriter
-	BlobBucketLister
+	List(*blob.ListOptions) *blob.ListIterator
+	NewWriter(context.Context, string, *blob.WriterOptions) (*blob.Writer, error)
+}
+
+type blobBucketContainer struct {
+	blobBucket BlobBucket
+}
+
+func (b blobBucketContainer) NewWriter(ctx context.Context, key string) (io.WriteCloser, error) {
+	return b.blobBucket.NewWriter(ctx, key, nil)
+}
+
+func (b blobBucketContainer) List() listIterator {
+	return b.blobBucket.List(nil)
 }
 
 type Blobber struct {
 	generator  func() ([]byte, error)
-	blobBucket BlobBucket
+	blobBucket blobBucket
 }
 
-func New(generator func() ([]byte, error), bb BlobBucket) *Blobber {
+func New(generator func() ([]byte, error), bb BlobBucket) (*Blobber, error) {
+	if generator == nil {
+		return nil, errors.New("generator function cannot be nil")
+	}
+	if bb == nil {
+		return nil, errors.New("blob bucket cannot be nil")
+	}
 	return &Blobber{
 		generator:  generator,
-		blobBucket: bb,
-	}
+		blobBucket: blobBucketContainer{bb},
+	}, nil
 }
 
 func (b *Blobber) CreateObjects(ctx context.Context, limit int) error {
@@ -42,7 +70,7 @@ func (b *Blobber) CreateObjects(ctx context.Context, limit int) error {
 	for i := 0; i < limit; i++ {
 		key := fmt.Sprintf("somebytes-%v.txt", rand.Int63())
 
-		w, err := b.blobBucket.NewWriter(ctx, key, nil)
+		w, err := b.blobBucket.NewWriter(ctx, key)
 		if err != nil {
 			return errors.Wrap(err, "could not create bucket writer")
 		}
@@ -58,7 +86,7 @@ func (b *Blobber) CreateObjects(ctx context.Context, limit int) error {
 		}
 
 		if expected != written {
-			return errors.Wrap(err, "wrote incorrect number of bytes")
+			return errors.New("wrote incorrect number of bytes")
 		}
 
 		if err := w.Close(); err != nil {
@@ -76,7 +104,7 @@ type Object struct {
 
 func (b *Blobber) ListObjects(ctx context.Context, threshold int) ([]Object, error) {
 	var objects []Object
-	iter := b.blobBucket.List(nil)
+	iter := b.blobBucket.List()
 	for {
 		obj, err := iter.Next(ctx)
 
